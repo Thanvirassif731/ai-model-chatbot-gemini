@@ -63,7 +63,7 @@ body.light .style-select option{background:#fff;color:#0b0f18;}
 .message.user{align-self:flex-end;background:linear-gradient(135deg, rgba(124,58,237,0.16), rgba(99,102,241,0.08));border:1px solid rgba(124,58,237,0.14);color:#fff}
 .message.ai{align-self:flex-start;background:linear-gradient(135deg, rgba(2,6,23,0.2), rgba(2,6,23,0.08));border:1px solid rgba(255,255,255,0.02);color:var(--muted)}
 
-.message .actions{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.message .actions{margin-top:10px;display:flex;gap:6px; border-top:1px solid rgba(128,128,128,0.2); padding-top:8px;}
 .msg-bubble{white-space:pre-wrap;font-size:15px;line-height:1.45}
 
 .composer{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,0.08));padding:14px;border-top:1px solid var(--glass-strong)}
