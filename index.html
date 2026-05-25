@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gemini Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="title">Gemini Assistant</div>
+      <div class="controls">
+        <select id="styleSelect" class="style-select" title="Conversation Style"></select>
+        <button id="clearChat" class="icon-btn" title="Clear chat">Clear</button>
+        <label class="theme-toggle" title="Toggle theme">
+          <input id="themeToggle" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </header>
+
+    <main class="chat-area">
+      <div id="messages" class="messages" aria-live="polite"></div>
+    </main>
+
+    <footer class="composer">
+      <div class="composer-inner">
+        <textarea id="input" placeholder="Type a message..." rows="1"></textarea>
+        <div class="composer-actions">
+          <button id="sendBtn" class="send-btn">Send</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
