@@ -15,18 +15,36 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Floating background particles */
+    canvas {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 0;
+      pointer-events: none;
     }
 
     .chat-container {
+      position: relative;
+      z-index: 1;
       width: 100%;
       max-width: 720px;
       height: 90vh;
       display: flex;
       flex-direction: column;
-      background: #181825;
+      background: rgba(24, 24, 37, 0.92);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 40px rgba(203, 166, 247, 0.15), 0 2px 8px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      animation: containerFadeIn 0.6s ease;
+    }
+
+    @keyframes containerFadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .chat-header {
@@ -36,6 +54,12 @@
       font-weight: 600;
       letter-spacing: 0.5px;
       color: #cba6f7;
+      animation: headerGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes headerGlow {
+      from { box-shadow: 0 2px 8px rgba(203,166,247,0.1); }
+      to   { box-shadow: 0 2px 20px rgba(203,166,247,0.4); }
     }
 
     .chat-messages {
@@ -54,25 +78,57 @@
       line-height: 1.5;
       font-size: 0.95rem;
       white-space: pre-wrap;
+      animation: messageIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes messageIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .message.user {
       align-self: flex-end;
-      background: #cba6f7;
-      color: #1e1e2e;
+      background: linear-gradient(135deg, #f72585, #b5179e);
+      color: #ffffff;
       border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
     }
 
     .message.bot {
       align-self: flex-start;
-      background: #313244;
-      color: #cdd6f4;
+      background: linear-gradient(135deg, #4361ee, #4cc9f0);
+      color: #ffffff;
       border-bottom-left-radius: 4px;
+      box-shadow: 0 4px 15px rgba(76, 201, 240, 0.4);
     }
 
-    .message.typing {
-      color: #6c7086;
-      font-style: italic;
+    /* Animated typing dots */
+    .typing-indicator {
+      align-self: flex-start;
+      background: #313244;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      animation: messageIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #4cc9f0;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40%            { transform: translateY(-8px); opacity: 1; }
     }
 
     .chat-input {
@@ -92,10 +148,12 @@
       color: #cdd6f4;
       font-size: 0.95rem;
       outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
 
     .chat-input input:focus {
       border-color: #cba6f7;
+      box-shadow: 0 0 0 3px rgba(203,166,247,0.15);
     }
 
     .chat-input button {
@@ -107,17 +165,25 @@
       font-weight: 600;
       cursor: pointer;
       font-size: 0.95rem;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
     }
 
-    .chat-input button:hover { background: #b48ead; }
-    .chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .chat-input button:hover {
+      background: #b48ead;
+      transform: scale(1.05);
+      box-shadow: 0 4px 16px rgba(203,166,247,0.3);
+    }
+
+    .chat-input button:active { transform: scale(0.97); }
+    .chat-input button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     .chat-messages::-webkit-scrollbar { width: 6px; }
     .chat-messages::-webkit-scrollbar-thumb { background: #45475a; border-radius: 4px; }
   </style>
 </head>
 <body>
+  <canvas id="particles"></canvas>
+
   <div class="chat-container">
     <div class="chat-header">✦ Gemini Chatbot</div>
     <div class="chat-messages" id="messages">
@@ -130,6 +196,43 @@
   </div>
 
   <script>
+    // Floating particles background
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = Array.from({ length: 50 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2 + 1,
+      dx: (Math.random() - 0.5) * 0.4,
+      dy: (Math.random() - 0.5) * 0.4,
+      alpha: Math.random() * 0.5 + 0.1
+    }));
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(203, 166, 247, ${p.alpha})`;
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.width)  p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Chat logic
     const input = document.getElementById("input");
     const sendBtn = document.getElementById("sendBtn");
     const messages = document.getElementById("messages");
@@ -145,6 +248,15 @@
       return div;
     }
 
+    function showTyping() {
+      const div = document.createElement("div");
+      div.className = "typing-indicator";
+      div.innerHTML = "<span></span><span></span><span></span>";
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+
     async function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
@@ -153,7 +265,7 @@
       sendBtn.disabled = true;
       appendMessage(text, "user");
 
-      const typing = appendMessage("Gemini is typing...", "bot typing");
+      const typing = showTyping();
 
       try {
         const res = await fetch("/chat", {
