@@ -40,7 +40,7 @@ def main() -> int:
 
 	while True:
 		try:
-			user_text = input("You: ").strip()
+			user_text = input("Ask Gemini: ").strip()
 		except (KeyboardInterrupt, EOFError):
 			print()
 			break
