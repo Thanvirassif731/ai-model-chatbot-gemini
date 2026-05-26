@@ -1,0 +1,12 @@
+[
+  {
+    "role": "user",
+    "content": "Hey! Crack me a joke!!!!",
+    "time": "2026-05-26 13:14:30.133372"
+  },
+  {
+    "role": "assistant",
+    "content": "What do you call a fake noodle?\n\nAn **impasta**! 🍝😂",
+    "time": "2026-05-26 13:14:30.133439"
+  }
+]
